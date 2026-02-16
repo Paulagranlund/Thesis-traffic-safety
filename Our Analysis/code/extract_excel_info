@@ -39,12 +39,14 @@ def extract_text_and_labels(file_path, sheet_number):
     if missing:
         raise ValueError(f"Missing columns in sheet {sheet_number}: {missing}")
 
-    df['KODE_UHELDSSITUATION_NORMALIZED'] = (
+    df['MANCOLL'] = (
     df['KODE_UHELDSSITUATION']
     .astype('category')
     .cat.codes + 1)
 
-    return_cols = ['KODE_UHELDSSITUATION_NORMALIZED', 'UHELDSTEKST']
+    df['SUMMARY'] = df['UHELDSTEKST']
+
+    return_cols = ['SUMMARY', 'MANCOLL']
     return df[return_cols]
 
 

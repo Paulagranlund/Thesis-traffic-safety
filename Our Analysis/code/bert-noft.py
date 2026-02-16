@@ -5,8 +5,10 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 
-EXCEL_PATH = "Our Analysis/data/....xlsx"
-df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
+from extract_excel_info import extract_text_and_labels
+#EXCEL_PATH = "data/....xlsx"
+#df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
+df = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
 texts = df["SUMMARY"].astype(str).tolist()
 labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
 
