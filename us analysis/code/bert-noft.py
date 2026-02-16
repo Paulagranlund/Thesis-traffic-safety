@@ -9,6 +9,8 @@ EXCEL_PATH = "US Analysis/data/case_info_2020.xlsx"
 df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
 texts = df["SUMMARY"].astype(str).tolist()
 labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
+print("hej")
+df.head()
 
 # 2. Load pre-trained BERT (no fine-tuning)
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
