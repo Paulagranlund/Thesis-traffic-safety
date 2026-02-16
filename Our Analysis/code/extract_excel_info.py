@@ -49,11 +49,11 @@ def extract_text_and_labels(file_path, sheet_number):
     df['SUMMARY'] = df['UHELDSTEKST']
 
     ##### FOR TESTING SHOULD BE REMOVED LATER
-    # Reset index to ensure clean row numbering
-    df = df.reset_index(drop=True)
 
     # Create artificial grouped labels
-    df['MANCOLL'] = df.index // 1000
+    df['MANCOLL'] = (
+        df['KODE_UHELDSSITUATION'] // 100
+    )
 
     return_cols = ['SUMMARY', 'MANCOLL']
     return df[return_cols]
