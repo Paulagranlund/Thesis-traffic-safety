@@ -8,14 +8,14 @@ from sklearn.metrics import classification_report, accuracy_score
 from extract_excel_info import extract_text_and_labels
 #EXCEL_PATH = "data/....xlsx"
 #df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
-df = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
+df = extract_text_and_labels("Our Analysis/data/2025 only.xlsx", sheet_number=0)
 texts = df["SUMMARY"].astype(str).tolist()
 labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
 df.head()
 
 # 2. Load pre-trained BERT (no fine-tuning)
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-model = BertModel.from_pretrained("bert-base-uncased")
+tokenizer = BertTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
+model = BertModel.from_pretrained("Maltehb/danish-bert-botxo")
 model.eval()  # Evaluation mode, no parameter updates
 
 # 3. Define feature extraction function
