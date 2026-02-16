@@ -31,7 +31,7 @@ def extract_text_and_labels(file_path, sheet_number):
         file_path,
         sheet_name=sheet_number,
         header=2, 
-        nrows=4000
+        nrows=10000
     )
 
     required_cols = ['KODE_UHELDSSITUATION', 'UHELDSTEKST']
@@ -59,7 +59,7 @@ def extract_text_and_labels(file_path, sheet_number):
     return df[return_cols]
 
 
-file_path = "data/2025 only.xlsx"  
+file_path = "Our Analysis/data/2025 only.xlsx"  
 excel_info = extract_excel_info(file_path)
 
 print(f"Table Name: {excel_info['Table Name']}")
@@ -71,6 +71,6 @@ for sheet, headers in excel_info["Sheet Headers"].items():
 
 
 
-data = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
+data = extract_text_and_labels("Our Analysis/data/2025 only.xlsx", sheet_number=0)
 
 print(data)

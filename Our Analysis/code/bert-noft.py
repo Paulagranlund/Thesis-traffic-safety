@@ -1,21 +1,25 @@
 import pandas as pd
 import torch
-from transformers import BertTokenizer, BertModel
+from transformers import BertTokenizer, BertModel, AutoTokenizer, AutoModel
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
-
 from extract_excel_info import extract_text_and_labels
+
 #EXCEL_PATH = "data/....xlsx"
 #df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
 df = extract_text_and_labels("Our Analysis/data/2025 only.xlsx", sheet_number=0)
 texts = df["SUMMARY"].astype(str).tolist()
 labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
-df.head()
+print("Number of samples per label:")
+print(df["MANCOLL"].value_counts().sort_index())
+
 
 # 2. Load pre-trained BERT (no fine-tuning)
-tokenizer = BertTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
-model = BertModel.from_pretrained("Maltehb/danish-bert-botxo")
+tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
+model = AutoModel.from_pretrained("Maltehb/danish-bert-botxo")
+#tokenizer = BertTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
+#model = BertModel.from_pretrained("Maltehb/danish-bert-botxo")
 model.eval()  # Evaluation mode, no parameter updates
 
 # 3. Define feature extraction function
