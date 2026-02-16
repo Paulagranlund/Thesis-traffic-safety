@@ -31,7 +31,7 @@ def extract_text_and_labels(file_path, sheet_number):
         file_path,
         sheet_name=sheet_number,
         header=2, 
-        nrows=10000
+        nrows=4000
     )
 
     required_cols = ['KODE_UHELDSSITUATION', 'UHELDSTEKST']
