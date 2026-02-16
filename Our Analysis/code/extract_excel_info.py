@@ -30,7 +30,8 @@ def extract_text_and_labels(file_path, sheet_number):
     df = pd.read_excel(
         file_path,
         sheet_name=sheet_number,
-        header=2
+        header=2, 
+        nrows=10000
     )
 
     required_cols = ['KODE_UHELDSSITUATION', 'UHELDSTEKST']
@@ -39,12 +40,20 @@ def extract_text_and_labels(file_path, sheet_number):
     if missing:
         raise ValueError(f"Missing columns in sheet {sheet_number}: {missing}")
 
-    df['MANCOLL'] = (
-    df['KODE_UHELDSSITUATION']
-    .astype('category')
-    .cat.codes + 1)
+    #### MUTED FOR TESTING
+    #df['MANCOLL'] = (
+    #df['KODE_UHELDSSITUATION']
+    #.astype('category')
+    #.cat.codes + 1)
 
     df['SUMMARY'] = df['UHELDSTEKST']
+
+    ##### FOR TESTING SHOULD BE REMOVED LATER
+    # Reset index to ensure clean row numbering
+    df = df.reset_index(drop=True)
+
+    # Create artificial grouped labels
+    df['MANCOLL'] = df.index // 1000
 
     return_cols = ['SUMMARY', 'MANCOLL']
     return df[return_cols]

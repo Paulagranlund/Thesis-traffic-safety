@@ -11,6 +11,7 @@ from extract_excel_info import extract_text_and_labels
 df = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
 texts = df["SUMMARY"].astype(str).tolist()
 labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
+df.head()
 
 # 2. Load pre-trained BERT (no fine-tuning)
 tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
