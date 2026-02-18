@@ -113,3 +113,199 @@ plt.title("Distribution of accident classifications")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "accident_classification_distribution.png", dpi=300)
 plt.close()
+
+
+# ---------------------------------------------------------------------
+# Accident classifications over time
+# ---------------------------------------------------------------------
+
+class_year = (
+    df.groupby(["year", "report_category"])
+      .size()
+      .reset_index(name="count")
+)
+
+class_year["share"] = (
+    class_year["count"] /
+    class_year.groupby("year")["count"].transform("sum")
+)
+
+pivot_class_year = class_year.pivot(
+    index="year",
+    columns="report_category",
+    values="share"
+)
+
+#plotting the shares of accident classifications over time
+# Ensure year order
+pivot_class_year = pivot_class_year.sort_index()
+
+plt.figure()
+for col in pivot_class_year.columns:
+    plt.plot(
+        pivot_class_year.index.to_numpy(),
+        pivot_class_year[col].to_numpy(),
+        label=str(col)
+    )
+
+plt.xlabel("Year")
+plt.ylabel("Share of reports")
+plt.title("Accident classification shares over time")
+plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "accident_classification_over_time_lines.png", dpi=300)
+plt.close()
+
+# ---------------------------------------------------------------------
+# Distribution of main accident situations
+# ---------------------------------------------------------------------
+
+df["encoded_accident_situation"] = pd.to_numeric(
+    df["encoded_accident_situation"], errors="coerce"
+)
+
+# Main class: 0 if <100, 1 if 100-199, 2 if 200-299, ...
+df["main_situation_class"] = (df["encoded_accident_situation"] // 100).astype("Int64")
+
+
+main_class_dist = (
+    df["main_situation_class"]
+      .value_counts(dropna=False)
+      .sort_index()
+      .reset_index()
+)
+main_class_dist.columns = ["main_situation_class", "count"]
+main_class_dist["share"] = main_class_dist["count"] / main_class_dist["count"].sum()
+print("Non-numeric situation codes:", df["encoded_accident_situation"].isna().sum())
+
+print(main_class_dist)
+
+
+plt.figure()
+plt.bar(
+    main_class_dist["main_situation_class"].astype(str).to_numpy(),
+    main_class_dist["count"].to_numpy()
+)
+plt.xlabel("Main situation class (hundreds bucket)")
+plt.ylabel("Number of reports")
+plt.title("Distribution of main accident situation classes")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "main_situation_class_distribution.png", dpi=300)
+plt.close()
+
+situation_codebook = (
+    df.dropna(subset=["encoded_accident_situation"])
+      .groupby("encoded_accident_situation")["accident_situation"]
+      .agg(lambda s: s.dropna().astype(str).value_counts().index[0] if len(s.dropna()) else "")
+      .reset_index()
+      .rename(columns={"accident_situation": "situation_name"})
+)
+
+sub_by_class = (
+    df.dropna(subset=["main_situation_class", "encoded_accident_situation"])
+      .groupby(["main_situation_class", "encoded_accident_situation"])
+      .size()
+      .reset_index(name="count")
+)
+
+sub_by_class["share_within_class"] = (
+    sub_by_class["count"] /
+    sub_by_class.groupby("main_situation_class")["count"].transform("sum")
+)
+
+sub_by_class = sub_by_class.merge(
+    situation_codebook, on="encoded_accident_situation", how="left"
+)
+
+sub_by_class = sub_by_class.sort_values(
+    ["main_situation_class", "count"], ascending=[True, False]
+)
+
+print(sub_by_class.head(30))
+
+#TOP_N = 10
+
+#top_sub_by_class = (
+#    sub_by_class
+#    .groupby("main_situation_class", group_keys=False)
+#    .head(TOP_N)
+#)
+
+#print(top_sub_by_class)
+
+
+sub_by_class.to_csv("data/output/sub_situations_by_class_full.csv", index=False)
+#top_sub_by_class.to_csv("data/output/sub_situations_by_class_top10.csv", index=False)
+
+for cls, grp in sub_by_class.groupby("main_situation_class"):
+    labels = (
+        grp["encoded_accident_situation"].astype(int).astype(str)
+        + " - "
+        + grp["situation_name"].fillna("")
+    )
+
+    plt.figure()
+    plt.bar(labels.to_numpy(), grp["share_within_class"].to_numpy())
+    plt.xticks(rotation=90, ha="right")
+    plt.xlabel("Sub accident situation (code + name)")
+    plt.ylabel("Share within main class")
+    plt.title(f"Sub accident situations within class {cls}")
+    plt.tight_layout()
+    plt.savefig(OUTPUT_DIR / f"sub_situations_top_class_{cls}.png", dpi=300)
+    plt.close()
+
+
+# ---------------------------------------------------------------------
+# Availability of VD narratives
+# ---------------------------------------------------------------------
+
+overall_narrative_share = df["has_narrative"].mean()
+print(f"Overall share with narrative: {overall_narrative_share:.2%}")
+
+narrative_by_year = (
+    df.groupby("year")["has_narrative"]
+      .mean()
+      .reset_index(name="share_with_narrative")
+)
+
+narrative_by_class = (
+    df.groupby("report_category")["has_narrative"]
+      .mean()
+      .reset_index(name="share_with_narrative")
+)
+
+#plotting the VD narrative availability by year
+plt.figure()
+plt.plot(
+    narrative_by_year["year"].to_numpy(),
+    narrative_by_year["share_with_narrative"].to_numpy()
+)
+plt.xlabel("Year")
+plt.ylabel("Share with narrative")
+plt.title("Narrative availability by year")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "narrative_availability_by_year.png", dpi=300)
+plt.close()
+
+no_narrative_by_year = (
+    df.loc[~df["has_narrative"]]
+      .groupby("year")
+      .size()
+      .reset_index(name="n_without_narrative")
+      .sort_values("year")
+)
+
+print(no_narrative_by_year)
+
+
+# ---------------------------------------------------------------------
+# Freeze full dataset before text-based filtering
+# ---------------------------------------------------------------------
+
+df_full = df.copy()
+
+# ---------------------------------------------------------------------
+# Subset for VD narrative analysis
+# ---------------------------------------------------------------------
+
+df_text = df_full.loc[df_full["has_narrative"]].copy()
