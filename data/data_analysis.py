@@ -1,7 +1,7 @@
 import pandas as pd
 
 from extract_excel_info.py import extract_text_and_labels
-#
+
 # EXCEL_PATH = "data/....xlsx"
 #df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
 df = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
