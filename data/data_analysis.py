@@ -256,6 +256,59 @@ for cls, grp in sub_by_class.groupby("main_situation_class"):
 
 
 # ---------------------------------------------------------------------
+# Distribution of main situation classes by accident classification
+# ---------------------------------------------------------------------
+
+base_counts = (
+    df.dropna(subset=["main_situation_class", "report_category"])
+      .groupby(["main_situation_class", "report_category"])
+      .size()
+      .reset_index(name="count")
+)
+
+
+base_counts["share_within_classification"] = (
+    base_counts["count"] /
+    base_counts.groupby("report_category")["count"].transform("sum")
+)
+
+base_counts["share_within_main_situation"] = (
+    base_counts["count"] /
+    base_counts.groupby("main_situation_class")["count"].transform("sum")
+)
+pivot_A = base_counts.pivot(
+    index="report_category",
+    columns="main_situation_class",
+    values="share_within_classification"
+).fillna(0)
+
+plt.figure(figsize=(10, 6))
+pivot_A.plot(kind="bar", stacked=True, width=0.8)
+plt.xlabel("Accident classification")
+plt.ylabel("Share within classification")
+plt.title("Main situation class distribution within each accident classification")
+plt.legend(title="Main situation class", bbox_to_anchor=(1.02, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "main_situation_within_classification_stacked.png", dpi=300)
+plt.close()
+pivot_B = base_counts.pivot(
+    index="main_situation_class",
+    columns="report_category",
+    values="share_within_main_situation"
+).fillna(0).sort_index()
+
+plt.figure(figsize=(10, 6))
+pivot_B.plot(kind="bar", stacked=True, width=0.8)
+plt.xlabel("Main situation class")
+plt.ylabel("Share within main situation class")
+plt.title("Accident classification distribution within each main situation class")
+plt.legend(title="Accident classification", bbox_to_anchor=(1.02, 1), loc="upper left")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "classification_within_main_situation_stacked.png", dpi=300)
+plt.close()
+
+
+# ---------------------------------------------------------------------
 # Availability of VD narratives
 # ---------------------------------------------------------------------
 
@@ -309,3 +362,67 @@ df_full = df.copy()
 # ---------------------------------------------------------------------
 
 df_text = df_full.loc[df_full["has_narrative"]].copy()
+
+
+
+
+# ---------------------------------------------------------------------
+# Narrative length measures
+# ---------------------------------------------------------------------
+
+df_text["n_chars"] = df_text["police_narrative"].str.len()
+df_text["n_words"] = df_text["police_narrative"].str.split().str.len()
+df_text["n_sentences"] = (
+    df_text["police_narrative"]
+    .str.count(r"[.!?]+")
+)
+
+
+length_summary = df_text[["n_chars", "n_words", "n_sentences"]].describe(
+    percentiles=[0.1, 0.25, 0.5, 0.75, 0.9]
+)
+
+print(length_summary)
+
+
+plt.figure()
+plt.hist(df_text["n_words"].to_numpy(), bins=50)
+plt.xlabel("Number of words")
+plt.ylabel("Frequency")
+plt.title("Distribution of VD narrative length (words)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_narrative_word_length_distribution.png", dpi=300)
+plt.close()
+
+
+plt.figure()
+plt.hist(df_text["n_sentences"].to_numpy(), bins=40)
+plt.xlabel("Number of sentences")
+plt.ylabel("Frequency")
+plt.title("Distribution of VD narrative length (sentences)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_narrative_sentence_length_distribution.png", dpi=300)
+plt.close()
+
+# ---------------------------------------------------------------------
+# Export VD narratives with fewer than 3 words
+# ---------------------------------------------------------------------
+
+mask = df_text["n_words"] < 3
+
+cols_to_save = [
+    "police_narrative",
+    "n_words",
+    "year",
+    "report_category",
+    "main_situation_class",
+]
+
+short_narratives = df_text.loc[mask, cols_to_save]
+
+output_path = Path("data/output/short_vd_narratives_less_than_3_words.csv")
+short_narratives.to_csv(output_path, index=False)
+
+print(
+    f"Saved {len(short_narratives)} VD narratives with fewer than 3 words to {output_path}"
+)
