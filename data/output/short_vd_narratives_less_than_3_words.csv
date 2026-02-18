@@ -1,0 +1,203 @@
+police_narrative,n_words,year,report_category,main_situation_class
+FUH,1,2016,Mskduh,7
+Parkeringsuheld!,1,2016,Exuh,7
+P-KORT. Eneuheld.,2,2016,Exuh,0
+færdselsuheld/statestikkort,1,2016,Exuh,3
+FUH flugt.,2,2016,Anmsuh,0
+Vigepligtsuheld.,1,2016,Anmsuh,6
+"Peugeot 206,",2,2016,Anmsuh,0
+Forsætlig påkørsel.,2,2016,Anmsuh,1
+FUH-FLUGT,1,2016,Anmsuh,0
+AMB FUH,2,2016,Exuh,1
+FUH solouheld,2,2016,Exuh,0
+P-Kort,1,2016,Exuh,5
+FUH fastklemt,2,2016,Mskduh,2
+FUH,1,2016,Anmsuh,0
+Højresvingende,1,2016,Anmsuh,3
+"FUH, vigepligt",2,2016,Anmsuh,6
+FUH fastklemt.,2,2016,Anmsuh,0
+P01,1,2016,Mskduh,6
+FUH.,1,2016,Anmsuh,4
+P-kort,1,2016,Exuh,1
+"FUH, efteranmeldelse.",2,2016,Exuh,1
+fodgænger påkørt,2,2016,Pskduh,8
+P-kort,1,2016,Exuh,1
+P-kort.,1,2016,Exuh,1
+FUH Fanø,2,2016,Mskduh,0
+"Part 1,",2,2016,Anmsuh,0
+AMB-FUH,1,2017,Pskduh,2
+FUH,1,2017,Exuh,1
+FUH/bil-cyklist,1,2017,Anmsuh,4
+FUH,1,2017,Anmsuh,5
+Part,1,2017,Exuh,1
+"Ambulance-FUH, venstresvingsulykke",2,2017,Anmsuh,4
+Materielt fuh.,2,2017,Exuh,1
+Ulykke.,1,2017,Anmsuh,5
+tekst mangler,2,2017,Anmsuh,1
+P-kort,1,2017,Exuh,3
+Solouheld.,1,2017,Exuh,0
+FUH.,1,2017,Anmsuh,6
+Ej udfyldt,2,2017,Mskduh,0
+Ej udfyldt,2,2017,Anmsuh,3
+P-kort,1,2017,Exuh,2
+FUH,1,2018,Exuh,1
+FUH,1,2018,Anmsuh,6
+Fuh-flugt,1,2018,Anmsuh,4
+FUH,1,2018,Exuh,1
+FUH bilist/cyklist,2,2018,Anmsuh,6
+Færdselsuheld.,1,2018,Anmsuh,3
+Knallert væltet.,2,2018,Anmsuh,0
+P01blev påkørt.,2,2018,Anmsuh,7
+FUH-flugt.,1,2018,Anmsuh,7
+"Personbil,",1,2018,Anmsuh,0
+FUH-flugt.,1,2018,Anmsuh,1
+"FUH, vigepligt",2,2018,Anmsuh,6
+FUH,1,2018,Pskduh,8
+FUH,1,2019,Exuh,0
+P-kort,1,2019,Exuh,8
+FUH,1,2019,Anmsuh,0
+P-kort.,1,2019,Exuh,0
+FUH rundkørsel,2,2019,Anmsuh,6
+AMB-FUH,1,2019,Pskduh,4
+"FUH, lastbil/personbil",2,2019,Anmsuh,6
+Part 1,2,2019,Exuh,1
+MC væltet,2,2019,Pskduh,2
+FUH,1,2019,Anmsuh,6
+P-kort,1,2019,Exuh,1
+P-KORT,1,2019,Exuh,7
+Parkeringsskade.,1,2019,Anmsuh,7
+Færdselsuheld.,1,2019,Mskduh,1
+P-kort.,1,2019,Exuh,0
+P-KORT,1,2019,Exuh,7
+P-kort.,1,2019,Exuh,7
+P-kort,1,2019,Exuh,7
+P-kort,1,2019,Exuh,1
+P-kort.,1,2019,Exuh,1
+P-KORT,1,2019,Exuh,7
+P-KORT.,1,2019,Exuh,2
+Ikke beskrevet.,2,2019,Anmsuh,7
+MAT vigepligtsuheld.,2,2019,Anmsuh,5
+Beskrivelse mangler/JBN,2,2019,Anmsuh,4
+P-kort,1,2019,Exuh,8
+P-kort. Harmonikasammenstød.,2,2019,Exuh,1
+"""Ingen uheldsbeskrivelse""",2,2019,Anmsuh,8
+Cyklist ramt,2,2019,Anmsuh,3
+Part,1,2019,Pskduh,5
+P-KORT.,1,2019,Exuh,7
+"""Ingen tekst""/JBN",2,2020,Mskduh,0
+AMB FUH,2,2020,Anmsuh,6
+FUH FLUGT.,2,2020,Anmsuh,7
+"""Ingen tekst/JBN""",2,2020,Mskduh,7
+FUH solo,2,2020,Anmsuh,0
+Ingen uheldstekst,2,2020,Anmsuh,0
+Ingen uheldsstedsbeskrivelse/JBN,2,2020,Anmsuh,1
+P-Kort,1,2020,Exuh,1
+p-kort,1,2020,Exuh,1
+P-KORT,1,2020,Anmsuh,1
+FUH-flugt.,1,2020,Anmsuh,1
+"Part 1,",2,2020,Mskduh,6
+...,1,2020,Anmsuh,1
+FUH.,1,2020,Mskduh,6
+FUH.,1,2020,Pskduh,4
+Person,1,2021,Exuh,7
+Solouheld. Glatføreuheld.,2,2021,Exuh,0
+FUH,1,2021,Anmsuh,2
+P-KORT,1,2021,Exuh,7
+FUH,1,2021,Anmsuh,2
+P-kort.,1,2021,Exuh,8
+SoloFUH,1,2021,Mskduh,0
+.,1,2021,Anmsuh,3
+Ingen bemærkninger,2,2021,Exuh,7
+Harmonikasammenstød.,1,2021,Exuh,1
+Eftersættelse,1,2021,Anmsuh,7
+P-kort udfærdiget,2,2022,Exuh,1
+P-kort,1,2022,Exuh,1
+FUH,1,2022,Anmsuh,1
+P-kort.,1,2022,Exuh,1
+P-kort.,1,2022,Exuh,3
+P-kort,1,2022,Exuh,8
+Højresvingsulykke,1,2022,Anmsuh,3
+Materielt FUH.,2,2022,Anmsuh,2
+Part,1,2022,Anmsuh,1
+Intet oplyst,2,2022,Anmsuh,7
+FUH-flugt.,1,2022,Anmsuh,3
+FUH solo-uheld,2,2022,Anmsuh,7
+POLITI FUH.,2,2023,Anmsuh,1
+Vigepligt.,1,2022,Anmsuh,6
+Vigepligtsforsegelse,1,2023,Anmsuh,6
+P-kort,1,2023,Exuh,1
+FUH/FLUGT,1,2023,Anmsuh,5
+FUH FLUGT,2,2023,Anmsuh,7
+P:KORT,1,2023,Exuh,7
+FUH/FLUGT,1,2023,Anmsuh,1
+FUH/FLUGT,1,2023,Anmsuh,1
+VIGEPLIGT,1,2023,Anmsuh,8
+P-kort,1,2023,Exuh,1
+VIGEPLIGT PERSONSKADE,2,2023,Pskduh,4
+FUH/FLUGT,1,2023,Anmsuh,3
+Færdselsuheld.,1,2023,Mskduh,1
+VIGEPLIGT,1,2023,Anmsuh,4
+P-kort.,1,2023,Exuh,1
+FUH/FLUGT,1,2023,Anmsuh,7
+Påkørsel bagfra.,2,2023,Anmsuh,1
+FUH/FLUGT,1,2023,Anmsuh,1
+FUH/FLUGT,1,2023,Anmsuh,7
+VIGEPLIGT,1,2023,Anmsuh,8
+"Part 1,",2,2023,Anmsuh,3
+FUH sprit,2,2023,Anmsuh,1
+P-kort.,1,2023,Anmsuh,1
+FUH/FLUGT,1,2023,Anmsuh,1
+FUH/FLUGT,1,2023,Anmsuh,7
+FUH/FLUGT,1,2023,Anmsuh,7
+112-BLANKET: FUH.,2,2023,Exuh,0
+Ingen beskrivelse.,2,2023,Anmsuh,2
+Opdateres snarest...,2,2023,Anmsuh,8
+FUH/FLUGT,1,2023,Anmsuh,3
+FUH/FLUGT,1,2023,Anmsuh,0
+P-kort.,1,2023,Exuh,0
+P-kort:,1,2023,Exuh,2
+Solouheld.,1,2023,Anmsuh,0
+112: FUH,2,2024,Anmsuh,4
+FUH/FLUGT,1,2023,Anmsuh,7
+P-kort optaget,2,2024,Exuh,1
+P-kort.,1,2024,Exuh,1
+P-kort.,1,2024,Anmsuh,1
+Parkeringsskade. FUH-flugt.,2,2024,Anmsuh,7
+Personpåkørsel,1,2024,Pskduh,8
+VIGEPLIGT/BAKNING,1,2024,Anmsuh,6
+Højresvingsulykke.,1,2024,Pskduh,3
+P-kort,1,2024,Exuh,1
+P-kort udfærdiget.,2,2024,Exuh,0
+P-KORT.,1,2024,Exuh,1
+P-kort.,1,2024,Exuh,1
+P-kort.,1,2024,Exuh,7
+112: FUH,2,2024,Anmsuh,4
+P-kort,1,2024,Exuh,0
+112: FUH,2,2024,Anmsuh,4
+FUH u/P-skade.,2,2024,Mskduh,0
+FUH flugt/Vigepligt,2,2024,Exuh,5
+Pkort.,1,2024,Exuh,7
+FUH. Vigepligtforseelse.,2,2025,Anmsuh,4
+y,1,2025,Anmsuh,1
+P-kort.,1,2025,Exuh,1
+P-KORT:,1,2025,Exuh,1
+XX,1,2025,Anmsuh,1
+P-kort,1,2025,Exuh,1
+MB999999999999 P-kort.,2,2025,Exuh,1
+FUH flugt.,2,2025,Anmsuh,0
+P-kort,1,2025,Exuh,9
+MB999999999999,1,2025,Pskduh,4
+P-kort.,1,2025,Exuh,8
+P-kort,1,2025,Exuh,7
+P-kort.,1,2025,Exuh,1
+P-kort,1,2025,Exuh,7
+MB999999999999,1,2025,Pskduh,2
+P-kort,1,2025,Exuh,1
+MB999999999999.,1,2025,Pskduh,8
+P-kort.,1,2025,Exuh,1
+P-kort.,1,2025,Exuh,7
+P-kort,1,2025,Exuh,2
+P-kort.,1,2025,Exuh,1
+XX,1,2025,Mskduh,3
+MB999999999999,1,2026,Anmsuh,1
+MB999999999999,1,2026,Anmsuh,5
