@@ -22,7 +22,6 @@ from transformers import (
     default_data_collator,
 )
 
-
 SEED = 42
 MODEL_NAME = "bert-base-uncased" # choose pre-trained model, this is a bert model, trained on 110 million parameters (weights and biases), lowercased text
 MAX_LENGTH = 256 # maximum number of tokens the model will process for each text input
