@@ -1,17 +1,26 @@
 import pandas as pd
 
-from extract_excel_info.py import extract_text_and_labels
 
-# EXCEL_PATH = "data/....xlsx"
-#df = pd.read_excel(EXCEL_PATH)  # For example, contains ["SUMMARY", "LABEL"]
-df = extract_text_and_labels("data/2025 only.xlsx", sheet_number=0)
-texts = df["SUMMARY"].astype(str).tolist()
-labels = df["MANCOLL"].tolist()  # Labels are 0, 1, 2, 4, 5, 6, 9
-df.head()
+#load the Excel file
+file_path ="data/2026 to 2016 (18 feb).xlsx"
+xls = pd.ExcelFile(file_path)
+    
+table_name = file_path.split("/")[-1]  
+    
+sheet_names = xls.sheet_names
 
+# ensure no more than 1 sheet is loaded
+if len(sheet_names) > 1:
+    raise ValueError(f"Expected only 1 sheet, but found {len(sheet_names)} sheets: {sheet_names}")
 
-#priliminary analysis of label distribution
-label_counts = df['MANCOLL'].value_counts()
-print("Label Distribution:")
-print(label_counts)
+# load the single sheet
+df = xls.parse(sheet_names[0], nrows=0, header=2)
+
+# print number of rows and columns
+print(df)
+num_rows, num_cols = df.shape
+print(f"Number of rows: {num_rows}")
+print(f"Number of columns: {num_cols}")
+
+#print
 
