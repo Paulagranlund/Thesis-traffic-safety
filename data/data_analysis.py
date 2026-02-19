@@ -66,6 +66,7 @@ if df["year"].isna().any():
 # Dataset size and temporal coverage
 # ---------------------------------------------------------------------
 
+
 total_reports = len(df)
 
 reports_per_year = (
@@ -75,16 +76,24 @@ reports_per_year = (
       .sort_values("year")
 )
 
-years = sorted(df["year"].unique())
+years = reports_per_year["year"].to_numpy()
+n_reports = reports_per_year["n_reports"].to_numpy()
 
-
+# Compute mean and standard deviation across years
+mean_reports = n_reports.mean()
+std_reports = n_reports.std()
 
 print(f"Total number of reports: {total_reports}")
 print(reports_per_year)
+print(f"\nAverage reports per year: {mean_reports:.2f}")
+print(f"Standard deviation (reports per year): {std_reports:.2f}")
 
-#plotting the number of reports per year
-plt.figure()
-plt.bar(reports_per_year["year"], reports_per_year["n_reports"])
+# Plot
+plt.figure(figsize=(16, 6))
+
+plt.bar(years, n_reports, alpha=0.7)
+plt.axhline(mean_reports, linestyle="--", linewidth=2)
+
 plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Number of reports")
@@ -92,7 +101,6 @@ plt.title("Number of accident reports per year")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "reports_per_year.png", dpi=300)
 plt.close()
-
 
 # ---------------------------------------------------------------------
 # Accident classification distribution
