@@ -30,8 +30,7 @@ def extract_text_and_labels(file_path, sheet_number):
     df = pd.read_excel(
         file_path,
         sheet_name=sheet_number,
-        header=2, 
-        nrows=10000
+        header=2
     )
 
     required_cols = ['KODE_UHELDSSITUATION', 'UHELDSTEKST']
@@ -55,11 +54,12 @@ def extract_text_and_labels(file_path, sheet_number):
         df['KODE_UHELDSSITUATION'] // 100
     )
 
-    return_cols = ['SUMMARY', 'MANCOLL']
+    return_cols = ['SUMMARY', 'MANCOLL','AAR']
+    
     return df[return_cols]
 
 
-file_path = "Our Analysis/data/2025 only.xlsx"  
+file_path = "data/2026 to 2016 (18 feb).xlsx"  
 excel_info = extract_excel_info(file_path)
 
 print(f"Table Name: {excel_info['Table Name']}")
@@ -71,6 +71,7 @@ for sheet, headers in excel_info["Sheet Headers"].items():
 
 
 
-data = extract_text_and_labels("Our Analysis/data/2025 only.xlsx", sheet_number=0)
+data = extract_text_and_labels("data/2026 to 2016 (18 feb).xlsx", sheet_number=0)
+#save only year equal to 2024
+df = data[data['AAR'] == 2024]
 
-print(data)
