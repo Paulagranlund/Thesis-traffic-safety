@@ -25,7 +25,7 @@ from transformers import (
 SEED = 42
 MODEL_NAME = "bert-base-uncased" # choose pre-trained model, this is a bert model, trained on 110 million parameters (weights and biases), lowercased text
 MAX_LENGTH = 256 # maximum number of tokens the model will process for each text input
-OUTPUT_DIR = "./mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
+OUTPUT_DIR = "US Analysis/results/mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
 EXCEL_PATH = "US Analysis/data/case_info_2021.xlsx" # training data
 test_path= "US Analysis/data/case_info_2020.xlsx" # test data
 TEXT_COL = "SUMMARY" 
@@ -206,9 +206,9 @@ trainer = WeightedTrainer(
 )
 
 # ======== training ========
-# trainer.train()
-# trainer.save_model(OUTPUT_DIR)
-# tokenizer.save_pretrained(OUTPUT_DIR)
+trainer.train()
+trainer.save_model(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
 
 from transformers import AutoModelForSequenceClassification
 
@@ -216,8 +216,10 @@ def eval_and_print(name, dataset): # input: name, a label like "Test" or "Valida
     if dataset is None:
         return
 # Reload the model from the saved checkpoint, a checkpoint is a snapshot of the model at a specific training step
-    checkpoint_dir ="mancoll_bert2/checkpoint-845" # loads a saved trained model from defined folder, to evaluate the saved best model
+    checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
     # load a saved fine-tuned model
+    print(os.path.exists(checkpoint_dir))
+    print(os.listdir(os.path.dirname(checkpoint_dir)))
     model = AutoModelForSequenceClassification.from_pretrained(
         checkpoint_dir, 
         num_labels=num_labels, 
@@ -269,7 +271,7 @@ def eval_and_print(name, dataset): # input: name, a label like "Test" or "Valida
         })
 
     result_df = pd.DataFrame(records) # converts the list of dictionaries to a dataframe
-    output_path = "mancoll_bert2/bert_test_results-845-4.xlsx" # define where the file should be saved and the name
+    output_path = "US Analysis/results/mancoll_bert2/bert_test_results-845-4.xlsx" # define where the file should be saved and the name
     dir_path = os.path.dirname(output_path) # extracts the folder name from the full path
     if dir_path and not os.path.exists(dir_path): # If the folder does not exist, then create it
         os.makedirs(dir_path)

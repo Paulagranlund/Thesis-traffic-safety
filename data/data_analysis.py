@@ -2,32 +2,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
+import os
 
 OUTPUT_DIR = Path("data/output/figures")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# ---------------------------------------------------------------------
-# Data loading
-# ---------------------------------------------------------------------
-
-# load the Excel file
-file_path = "data/2026 to 2016 (18 feb).xlsx"
-xls = pd.ExcelFile(file_path)
-
-sheet_names = xls.sheet_names
-
-# ensure no more than 1 sheet is loaded
-if len(sheet_names) > 1:
-    raise ValueError(
-        f"Expected only 1 sheet, but found {len(sheet_names)} sheets: {sheet_names}"
-    )
-
-# load the single sheet
-df = xls.parse(sheet_names[0], header=2)
-
-# ---------------------------------------------------------------------
-# Column renaming and standardisation
-# ---------------------------------------------------------------------
+plt.rcParams["figure.figsize"] = (12, 6)
 
 COLUMN_RENAME_MAP = {
     "UHELDSDATO": "accident_date",
@@ -38,16 +17,39 @@ COLUMN_RENAME_MAP = {
     "AAR": "year",
 }
 
-df = df.rename(columns=COLUMN_RENAME_MAP)
+def extract_and_combine(folder_path):
+    all_dfs = []
 
-expected_columns = set(COLUMN_RENAME_MAP.values())
-missing_columns = expected_columns - set(df.columns)
+    for file in os.listdir(folder_path):
+        if file.endswith(".xlsx"):
+            file_path = os.path.join(folder_path, file)
 
-if missing_columns:
-    raise ValueError(f"Missing expected columns: {missing_columns}")
+            # Load file
+            xls = pd.ExcelFile(file_path)
 
-df = df[list(COLUMN_RENAME_MAP.values())]
+            if len(xls.sheet_names) != 1:
+                raise ValueError(f"{file} has more than one sheet")
 
+            df = xls.parse(xls.sheet_names[0], header=2)
+
+            # Rename columns
+            df = df.rename(columns=COLUMN_RENAME_MAP)
+
+            # Keep only needed columns
+            df = df[list(COLUMN_RENAME_MAP.values())]
+
+            # Optional: track source file
+            df["source_file"] = file
+
+            all_dfs.append(df)
+
+    # Combine everything
+    combined_df = pd.concat(all_dfs, ignore_index=True)
+    return combined_df
+
+df = extract_and_combine("data/data udtræk")
+
+print(df.head())
 
 # ---------------------------------------------------------------------
 # Basic validation and helper columns
@@ -73,12 +75,17 @@ reports_per_year = (
       .sort_values("year")
 )
 
+years = sorted(df["year"].unique())
+
+
+
 print(f"Total number of reports: {total_reports}")
 print(reports_per_year)
 
 #plotting the number of reports per year
 plt.figure()
 plt.bar(reports_per_year["year"], reports_per_year["n_reports"])
+plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Number of reports")
 plt.title("Number of accident reports per year")
@@ -148,12 +155,11 @@ for col in pivot_class_year.columns:
         pivot_class_year[col].to_numpy(),
         label=str(col)
     )
-
+plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Share of reports")
 plt.title("Accident classification shares over time")
 plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
-plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "accident_classification_over_time_lines.png", dpi=300)
 plt.close()
 
@@ -190,7 +196,6 @@ plt.bar(
 plt.xlabel("Main situation class (hundreds bucket)")
 plt.ylabel("Number of reports")
 plt.title("Distribution of main accident situation classes")
-plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "main_situation_class_distribution.png", dpi=300)
 plt.close()
 
@@ -334,6 +339,7 @@ plt.plot(
     narrative_by_year["year"].to_numpy(),
     narrative_by_year["share_with_narrative"].to_numpy()
 )
+plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Share with narrative")
 plt.title("Narrative availability by year")
@@ -549,4 +555,100 @@ plt.ylabel("Count")
 plt.title("Top 30 bigrams (Danish, stopwords removed)")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_top_bigrams.png", dpi=300)
+plt.close()
+
+# ---------------------------------------------------------------------
+# Wordsclouds
+# ---------------------------------------------------------------------
+
+from wordcloud import WordCloud
+from matplotlib import font_manager
+
+# This is a guaranteed TrueType font path shipped with matplotlib
+font_path = font_manager.findfont("DejaVu Sans")
+
+text_for_wordcloud = " ".join(all_tokens)
+
+wordcloud = WordCloud(
+    width=1200,
+    height=600,
+    background_color="white",
+    collocations=False,
+    #font_path=font_path,
+).generate(text_for_wordcloud)
+
+plt.figure(figsize=(12, 6))
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis("off")
+plt.title("Word cloud of VD narratives")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_wordcloud.png", dpi=300)
+plt.close()
+
+
+
+# ---------------------------------------------------------------------
+#Average word count per year
+# ---------------------------------------------------------------------
+
+# Make sure year is a clean column (not index) and numeric
+df_text["year"] = pd.to_numeric(df_text["year"], errors="coerce")
+
+avg_words_by_year = (
+    df_text
+    .dropna(subset=["year"])
+    .groupby("year")["n_words"]
+    .mean()
+    .sort_index()
+)
+
+x = avg_words_by_year.index.to_numpy()
+y = avg_words_by_year.to_numpy()
+
+plt.figure()
+plt.plot(x, y)
+plt.xticks(years, rotation=45)
+plt.xlabel("Year")
+plt.ylabel("Average word count")
+plt.title("Average VD narrative length per year")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_avg_wordcount_by_year.png", dpi=300)
+plt.close()
+
+# ---------------------------------------------------------------------
+# Variation by accident classification
+# ---------------------------------------------------------------------
+
+# Compute mean and standard deviation
+words_by_class = (
+    df_text
+    .groupby("report_category")["n_words"]
+    .agg(["mean", "std"])
+    .reset_index()
+    .rename(columns={
+        "mean": "avg_word_count",
+        "std": "std_word_count"
+    })
+)
+
+# Round for presentation
+words_by_class[["avg_word_count", "std_word_count"]] = (
+    words_by_class[["avg_word_count", "std_word_count"]]
+    .round(2)
+)
+
+print(words_by_class)
+
+# Plot using the mean values
+plt.figure()
+plt.bar(
+    words_by_class["report_category"].astype(str),
+    words_by_class["avg_word_count"]
+)
+plt.xticks(rotation=45)
+plt.xlabel("Accident classification")
+plt.ylabel("Average word count")
+plt.title("Average VD narrative length by accident classification")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_avg_wordcount_by_class.png", dpi=300)
 plt.close()
