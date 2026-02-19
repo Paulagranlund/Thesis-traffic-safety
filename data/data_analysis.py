@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from pathlib import Path
+import numpy as np
 
 OUTPUT_DIR = Path("data/output/figures")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -384,7 +385,6 @@ length_summary = df_text[["n_chars", "n_words", "n_sentences"]].describe(
 
 print(length_summary)
 
-
 plt.figure()
 plt.hist(df_text["n_words"].to_numpy(), bins=50)
 plt.xlabel("Number of words")
@@ -426,3 +426,127 @@ short_narratives.to_csv(output_path, index=False)
 print(
     f"Saved {len(short_narratives)} VD narratives with fewer than 3 words to {output_path}"
 )
+
+# ---------------------------------------------------------------------
+# Structural characteristics
+# ---------------------------------------------------------------------
+
+# Split sentences using punctuation
+df_text["sentence_list"] = (
+    df_text["police_narrative"]
+    .str.split(r"[.!?]+", regex=True)
+)
+
+# Remove empty strings from sentence lists
+df_text["sentence_list"] = df_text["sentence_list"].apply(
+    lambda x: [s.strip() for s in x if s.strip()]
+)
+
+# Sentence length in words
+df_text["sentence_lengths"] = df_text["sentence_list"].apply(
+    lambda sentences: [len(s.split()) for s in sentences]
+)
+
+# Average sentence length per narrative
+df_text["avg_sentence_length"] = df_text["sentence_lengths"].apply(
+    lambda x: np.mean(x) if len(x) > 0 else np.nan
+)
+
+print(df_text["avg_sentence_length"].describe())
+
+# Pool all sentence lengths
+all_sentence_lengths = [
+    length
+    for sublist in df_text["sentence_lengths"]
+    for length in sublist
+]
+
+plt.figure()
+plt.hist(all_sentence_lengths, bins=50)
+plt.xlabel("Words per sentence")
+plt.ylabel("Frequency")
+plt.title("Distribution of sentence length (words per sentence)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_sentence_length_distribution.png", dpi=300)
+plt.close()
+
+# ---------------------------------------------------------------------
+# Most frequent terms and expressions
+# ---------------------------------------------------------------------
+
+import re
+from collections import Counter
+from nltk.corpus import stopwords
+import nltk
+
+# Remove actor labels like "part 1", "part 2", etc.
+df_text["police_narrative"] = (
+    df_text["police_narrative"]
+    .str.replace(r"\bpart\s*\d+\b", "", regex=True, flags=re.IGNORECASE)
+)
+
+# Ensure Danish stopwords are available
+try:
+    stop_words = set(stopwords.words("danish"))
+except LookupError:
+    nltk.download("stopwords")
+    stop_words = set(stopwords.words("danish"))
+
+def tokenize_danish(text):
+    text = text.lower()
+    tokens = re.findall(r"[a-zæøå]+", text)
+    tokens = [t for t in tokens if t not in stop_words and len(t) > 2]
+    return tokens
+
+df_text["tokens"] = df_text["police_narrative"].apply(tokenize_danish)
+
+# Flatten all tokens
+all_tokens = [token for tokens in df_text["tokens"] for token in tokens]
+
+word_counts = Counter(all_tokens)
+top_words = word_counts.most_common(30)
+
+top_words_df = pd.DataFrame(top_words, columns=["word", "count"])
+print(top_words_df)
+
+plt.figure()
+plt.bar(top_words_df["word"], top_words_df["count"])
+plt.xticks(rotation=75)
+plt.xlabel("Word")
+plt.ylabel("Count")
+plt.title("Top 30 most frequent words (Danish, stopwords removed)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_top_words.png", dpi=300)
+plt.close()
+
+
+# ---------------------------------------------------------------------
+# Most frequent biograms
+# ---------------------------------------------------------------------
+
+def generate_bigrams(tokens):
+    return list(zip(tokens, tokens[1:]))
+
+all_bigrams = []
+for tokens in df_text["tokens"]:
+    all_bigrams.extend(generate_bigrams(tokens))
+
+bigram_counts = Counter(all_bigrams)
+top_bigrams = bigram_counts.most_common(30)
+
+top_bigrams_df = pd.DataFrame(
+    [(f"{w1} {w2}", count) for (w1, w2), count in top_bigrams],
+    columns=["bigram", "count"]
+)
+
+print(top_bigrams_df)
+
+plt.figure()
+plt.bar(top_bigrams_df["bigram"], top_bigrams_df["count"])
+plt.xticks(rotation=75)
+plt.xlabel("Bigram")
+plt.ylabel("Count")
+plt.title("Top 30 bigrams (Danish, stopwords removed)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_top_bigrams.png", dpi=300)
+plt.close()
