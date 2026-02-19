@@ -91,8 +91,8 @@ print(f"Standard deviation (reports per year): {std_reports:.2f}")
 # Plot
 plt.figure(figsize=(16, 6))
 
-plt.bar(years, n_reports, alpha=0.7)
-plt.axhline(mean_reports, linestyle="--", linewidth=2)
+plt.bar(years, n_reports, color="gray", alpha=0.8)
+plt.axhline(mean_reports, color="red", linestyle="--", linewidth=2)
 
 plt.xticks(years, rotation=45)
 plt.xlabel("Year")
