@@ -74,3 +74,4 @@ for sheet, headers in excel_info["Sheet Headers"].items():
 data = extract_text_and_labels("data/2026 to 2016 (18 feb).xlsx", sheet_number=0)
 #save only year equal to 2024
 df = data[data['AAR'] == 2024]
+
