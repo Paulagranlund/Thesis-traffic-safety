@@ -268,6 +268,41 @@ for cls, grp in sub_by_class.groupby("main_situation_class"):
     plt.savefig(OUTPUT_DIR / f"sub_situations_top_class_{cls}.png", dpi=300)
     plt.close()
 
+# ---------------------------------------------------------------------
+# Distribution of main accident situations by year
+# ---------------------------------------------------------------------
+
+main_class_year_counts = (
+    df.groupby(["year", "main_situation_class"])
+      .size()
+      .reset_index(name="count")
+)
+
+# Pivot so each main class becomes a column
+main_class_year_pivot = (
+    main_class_year_counts
+    .pivot(index="year", columns="main_situation_class", values="count")
+    .fillna(0)
+    .sort_index()
+)
+
+plt.figure(figsize=(16, 6))
+
+for col in main_class_year_pivot.columns:
+    plt.plot(
+        main_class_year_pivot.index.to_numpy(),
+        main_class_year_pivot[col].to_numpy(),
+        label=f"Class {col}"
+    )
+
+plt.xlabel("Year")
+plt.ylabel("Number of reports")
+plt.title("Number of reports per main accident situation class over time")
+plt.legend()
+plt.xticks(main_class_year_pivot.index.to_numpy(), rotation=45)
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "main_situation_class_counts_over_time.png", dpi=300)
+plt.close()
 
 # ---------------------------------------------------------------------
 # Distribution of main situation classes by accident classification
