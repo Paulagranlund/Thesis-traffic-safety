@@ -126,7 +126,7 @@ plt.bar(classification_dist["report_category"],
 
 plt.xticks(rotation=45, ha="right")
 plt.ylabel("Number of reports")
-plt.title("Distribution of accident classifications")
+plt.title("Distribution of accident type")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "accident_classification_distribution.png", dpi=300)
 plt.close()
@@ -167,7 +167,7 @@ for col in pivot_class_year.columns:
 plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Share of reports")
-plt.title("Accident classification shares over time")
+plt.title("Accident type shares over time")
 plt.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 plt.savefig(OUTPUT_DIR / "accident_classification_over_time_lines.png", dpi=300)
 plt.close()
@@ -651,7 +651,10 @@ all_sentence_lengths = [
 ]
 
 plt.figure()
-plt.hist(all_sentence_lengths, bins=50)
+plt.hist(all_sentence_lengths,  bins=50,
+    color="gray",
+    edgecolor="#4d4d4d"
+)
 plt.xlabel("Words per sentence")
 plt.ylabel("Frequency")
 plt.title("Distribution of sentence length (words per sentence)")
