@@ -504,9 +504,13 @@ length_summary = df_text[["n_chars", "n_words", "n_sentences"]].describe(
 )
 
 print(length_summary)
-
-plt.figure()
-plt.hist(df_text["n_chars"].to_numpy(), bins=50)
+plt.figure(figsize=(10, 6))
+plt.hist(
+    df_text["n_chars"].to_numpy(),
+    bins=50,
+    color="gray",
+    edgecolor="#4d4d4d"
+)
 plt.xlabel("Number of characters")
 plt.ylabel("Frequency")
 plt.title("Distribution of VD narrative length (characters)")
@@ -514,8 +518,14 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_narrative_char_length_distribution.png", dpi=300)
 plt.close()
 
-plt.figure()
-plt.hist(df_text["n_words"].to_numpy(), bins=50)
+
+plt.figure(figsize=(10, 6))
+plt.hist(
+    df_text["n_words"].to_numpy(),
+    bins=50,
+    color="gray",
+    edgecolor="#4d4d4d"
+)
 plt.xlabel("Number of words")
 plt.ylabel("Frequency")
 plt.title("Distribution of VD narrative length (words)")
@@ -523,8 +533,14 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_narrative_word_length_distribution.png", dpi=300)
 plt.close()
 
-plt.figure()
-plt.hist(df_text["n_sentences"].to_numpy(), bins=40)
+
+plt.figure(figsize=(10, 6))
+plt.hist(
+    df_text["n_sentences"].to_numpy(),
+    bins=40,
+    color="gray",
+    edgecolor="#4d4d4d"
+)
 plt.xlabel("Number of sentences")
 plt.ylabel("Frequency")
 plt.title("Distribution of VD narrative length (sentences)")
