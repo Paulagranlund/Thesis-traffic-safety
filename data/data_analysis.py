@@ -122,7 +122,8 @@ print(classification_dist)
 #plotting the distribution of accident classifications
 plt.figure()
 plt.bar(classification_dist["report_category"],
-        classification_dist["count"])
+        classification_dist["count"], color="gray", alpha=0.8)
+
 plt.xticks(rotation=45, ha="right")
 plt.ylabel("Number of reports")
 plt.title("Distribution of accident classifications")
@@ -199,8 +200,8 @@ print(main_class_dist)
 plt.figure()
 plt.bar(
     main_class_dist["main_situation_class"].astype(str).to_numpy(),
-    main_class_dist["count"].to_numpy()
-)
+    main_class_dist["count"].to_numpy(),color="gray", alpha=0.8)
+
 plt.xlabel("Main situation class (hundreds bucket)")
 plt.ylabel("Number of reports")
 plt.title("Distribution of main accident situation classes")
@@ -259,7 +260,7 @@ for cls, grp in sub_by_class.groupby("main_situation_class"):
     )
 
     plt.figure()
-    plt.bar(labels.to_numpy(), grp["share_within_class"].to_numpy())
+    plt.bar(labels.to_numpy(), grp["share_within_class"].to_numpy(),color="gray", alpha=0.8)
     plt.xticks(rotation=90, ha="right")
     plt.xlabel("Sub accident situation (code + name)")
     plt.ylabel("Share within main class")
@@ -303,6 +304,75 @@ plt.xticks(main_class_year_pivot.index.to_numpy(), rotation=45)
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "main_situation_class_counts_over_time.png", dpi=300)
 plt.close()
+
+
+# ---------------------------------------------------------------------
+# Normalized entropy of sub-situations within each main situation
+# ---------------------------------------------------------------------
+
+# Count reports per main × sub
+sub_dist = (
+    df.groupby(["main_situation_class", "encoded_accident_situation"])
+      .size()
+      .reset_index(name="count")
+)
+
+entropy_results = []
+
+for main_class, group in sub_dist.groupby("main_situation_class"):
+    
+    counts = group["count"].to_numpy()
+    total = counts.sum()
+    
+    # Convert to probabilities
+    p = counts / total
+    
+    # Shannon entropy
+    H = -np.sum(p * np.log(p))
+    
+    # Number of sub-situations
+    k = len(counts)
+    
+    # Normalized entropy (avoid division by zero)
+    if k > 1:
+        H_norm = H / np.log(k)
+    else:
+        H_norm = 0.0
+    
+    entropy_results.append({
+        "main_situation_class": main_class,
+        "n_sub_situations": k,
+        "total_reports": total,
+        "entropy": H,
+        "normalized_entropy": H_norm
+    })
+
+entropy_df = pd.DataFrame(entropy_results).sort_values("main_situation_class")
+
+print(entropy_df.round(4))
+
+sub_counts = (
+    df.groupby("main_situation_class")["encoded_accident_situation"]
+      .nunique()
+      .reset_index(name="n_sub_situations")
+)
+
+print(sub_counts)
+
+dominance = []
+
+for main_class, group in sub_dist.groupby("main_situation_class"):
+    counts = group["count"].to_numpy()
+    total = counts.sum()
+    max_share = counts.max() / total
+    
+    dominance.append({
+        "main_situation_class": main_class,
+        "largest_sub_share": max_share
+    })
+
+dominance_df = pd.DataFrame(dominance)
+print(dominance_df.round(4))
 
 # ---------------------------------------------------------------------
 # Distribution of main situation classes by accident classification
@@ -362,7 +432,10 @@ plt.close()
 # ---------------------------------------------------------------------
 
 overall_narrative_share = df["has_narrative"].mean()
+overall_narrative_share_std = df["has_narrative"].std()
+
 print(f"Overall share with narrative: {overall_narrative_share:.2%}")
+print(f"Standard deviation of narrative availability: {overall_narrative_share_std:.2%}")
 
 narrative_by_year = (
     df.groupby("year")["has_narrative"]
@@ -414,8 +487,6 @@ df_full = df.copy()
 df_text = df_full.loc[df_full["has_narrative"]].copy()
 
 
-
-
 # ---------------------------------------------------------------------
 # Narrative length measures
 # ---------------------------------------------------------------------
@@ -435,6 +506,15 @@ length_summary = df_text[["n_chars", "n_words", "n_sentences"]].describe(
 print(length_summary)
 
 plt.figure()
+plt.hist(df_text["n_chars"].to_numpy(), bins=50)
+plt.xlabel("Number of characters")
+plt.ylabel("Frequency")
+plt.title("Distribution of VD narrative length (characters)")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_narrative_char_length_distribution.png", dpi=300)
+plt.close()
+
+plt.figure()
 plt.hist(df_text["n_words"].to_numpy(), bins=50)
 plt.xlabel("Number of words")
 plt.ylabel("Frequency")
@@ -442,7 +522,6 @@ plt.title("Distribution of VD narrative length (words)")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_narrative_word_length_distribution.png", dpi=300)
 plt.close()
-
 
 plt.figure()
 plt.hist(df_text["n_sentences"].to_numpy(), bins=40)
@@ -475,6 +554,51 @@ short_narratives.to_csv(output_path, index=False)
 print(
     f"Saved {len(short_narratives)} VD narratives with fewer than 3 words to {output_path}"
 )
+
+df_text = df_text[df_text["n_words"] >= 3].copy()
+
+print(f"Remaining reports after exclusion: {len(df_text)}")
+
+# ---------------------------------------------------------------------
+# Short narratives (< 3 words) analysis
+# ---------------------------------------------------------------------
+
+# Most common short narratives
+short_text_counts = (
+    short_narratives["police_narrative"]
+    .value_counts()
+    .reset_index()
+)
+
+short_text_counts.columns = ["police_narrative", "count"]
+
+print(short_text_counts.head(20))
+
+short_by_category = (
+    short_narratives.groupby("report_category")
+    .size()
+    .reset_index(name="count")
+    .sort_values("count", ascending=False)
+)
+
+short_by_category["share_within_short"] = (
+    short_by_category["count"] / short_by_category["count"].sum()
+)
+
+print(short_by_category)
+
+short_by_main = (
+    short_narratives.groupby("main_situation_class")
+    .size()
+    .reset_index(name="count")
+    .sort_values("count", ascending=False)
+)
+
+short_by_main["share_within_short"] = (
+    short_by_main["count"] / short_by_main["count"].sum()
+)
+
+print(short_by_main)
 
 # ---------------------------------------------------------------------
 # Structural characteristics
@@ -519,6 +643,26 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_sentence_length_distribution.png", dpi=300)
 plt.close()
 
+
+# ---------------------------------------------------------------------
+# Scatter: sentence count vs average words per sentence
+# ---------------------------------------------------------------------
+
+plt.figure(figsize=(10, 6))
+
+plt.scatter(
+    df_text["n_sentences"].to_numpy(),
+    df_text["avg_sentence_length"].to_numpy(),
+    alpha=0.1  # low alpha because many points
+)
+
+plt.xlabel("Number of sentences per report")
+plt.ylabel("Average words per sentence")
+plt.title("Average words per sentence vs. total sentence count")
+plt.tight_layout()
+plt.savefig(OUTPUT_DIR / "vd_sentence_structure_scatter.png", dpi=300)
+plt.close()
+
 # ---------------------------------------------------------------------
 # Most frequent terms and expressions
 # ---------------------------------------------------------------------
@@ -559,7 +703,7 @@ top_words_df = pd.DataFrame(top_words, columns=["word", "count"])
 print(top_words_df)
 
 plt.figure()
-plt.bar(top_words_df["word"], top_words_df["count"])
+plt.bar(top_words_df["word"], top_words_df["count"],color="gray", alpha=0.8)
 plt.xticks(rotation=75)
 plt.xlabel("Word")
 plt.ylabel("Count")
@@ -591,7 +735,7 @@ top_bigrams_df = pd.DataFrame(
 print(top_bigrams_df)
 
 plt.figure()
-plt.bar(top_bigrams_df["bigram"], top_bigrams_df["count"])
+plt.bar(top_bigrams_df["bigram"], top_bigrams_df["count"],color="gray", alpha=0.8)
 plt.xticks(rotation=75)
 plt.xlabel("Bigram")
 plt.ylabel("Count")
@@ -628,8 +772,6 @@ plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_wordcloud.png", dpi=300)
 plt.close()
 
-
-
 # ---------------------------------------------------------------------
 #Average word count per year
 # ---------------------------------------------------------------------
@@ -649,7 +791,7 @@ x = avg_words_by_year.index.to_numpy()
 y = avg_words_by_year.to_numpy()
 
 plt.figure()
-plt.plot(x, y)
+plt.plot(x, y, color="red", linewidth=2.5)
 plt.xticks(years, rotation=45)
 plt.xlabel("Year")
 plt.ylabel("Average word count")
@@ -657,6 +799,7 @@ plt.title("Average VD narrative length per year")
 plt.tight_layout()
 plt.savefig(OUTPUT_DIR / "vd_avg_wordcount_by_year.png", dpi=300)
 plt.close()
+
 
 # ---------------------------------------------------------------------
 # Variation by accident classification
@@ -686,7 +829,7 @@ print(words_by_class)
 plt.figure()
 plt.bar(
     words_by_class["report_category"].astype(str),
-    words_by_class["avg_word_count"]
+    words_by_class["avg_word_count"],color="gray", alpha=0.8
 )
 plt.xticks(rotation=45)
 plt.xlabel("Accident classification")
