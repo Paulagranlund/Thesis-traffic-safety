@@ -80,8 +80,8 @@ print(df["main_situation_class"].value_counts().sort_index())
 #print(df["MANCOLL"].value_counts().sort_index())
 
 # 2. Load pre-trained BERT (no fine-tuning)
-tokenizer = AutoTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
-model = AutoModel.from_pretrained("Maltehb/danish-bert-botxo")
+tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+model = AutoModel.from_pretrained("bert-base-uncased")
 #tokenizer = BertTokenizer.from_pretrained("Maltehb/danish-bert-botxo")
 #model = BertModel.from_pretrained("Maltehb/danish-bert-botxo")
 model.eval()  # Evaluation mode, no parameter updates
