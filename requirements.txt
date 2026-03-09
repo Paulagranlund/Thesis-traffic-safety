@@ -1,0 +1,8 @@
+pandas
+numpy
+scikit-learn
+tqdm
+pillow>=9.1.0
+torch==2.4.0
+transformers==4.41.2
+openpyxl
