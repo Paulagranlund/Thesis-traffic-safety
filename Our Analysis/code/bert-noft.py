@@ -65,3 +65,5 @@ print("\n=== After removing label 9 ===")
 print("Accuracy:", accuracy_score(y_test_filtered, y_pred_filtered))
 print("Macro-F1:", f1_score(y_test_filtered, y_pred_filtered, average="macro"))
 print(classification_report(y_test_filtered, y_pred_filtered, digits=3))
+
+print("hej")
