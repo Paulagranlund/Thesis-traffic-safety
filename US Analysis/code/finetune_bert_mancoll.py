@@ -216,7 +216,14 @@ def eval_and_print(name, dataset): # input: name, a label like "Test" or "Valida
     if dataset is None:
         return
 # Reload the model from the saved checkpoint, a checkpoint is a snapshot of the model at a specific training step
-    checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
+    #checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
+    base_dir = os.path.abspath("US Analysis/results/mancoll_bert2")
+    checkpoints = [d for d in os.listdir(base_dir) if d.startswith("checkpoint-")]
+    latest_checkpoint = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))[-1]
+    checkpoint_dir = os.path.join(base_dir, latest_checkpoint)
+
+    print("Loading checkpoint:", checkpoint_dir)
+    
     # load a saved fine-tuned model
     print(os.path.exists(checkpoint_dir))
     print(os.listdir(os.path.dirname(checkpoint_dir)))

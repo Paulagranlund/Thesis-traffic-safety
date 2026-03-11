@@ -1,0 +1,19 @@
+# Model outputs
+US Analysis/results/
+Our Analysis/results/
+mancoll_bert2/
+tmp_trainer/
+
+# HuggingFace checkpoints
+checkpoint-*/
+*.bin
+*.pt
+*.safetensors
+
+# Data files
+data/
+*.xlsx
+
+# Python
+__pycache__/
+*.pyc
