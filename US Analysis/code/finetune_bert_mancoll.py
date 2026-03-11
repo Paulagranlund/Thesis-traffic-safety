@@ -27,7 +27,7 @@ MODEL_NAME = "bert-base-uncased" # choose pre-trained model, this is a bert mode
 MAX_LENGTH = 256 # maximum number of tokens the model will process for each text input
 OUTPUT_DIR = "US Analysis/results/mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
 EXCEL_PATH = "US Analysis/data/case_info_2021.xlsx" # training data
-test_path= "US Analysis/data/case_info_2020.xlsx" # test data
+test_path= "us analysis/data/case_info_2020.xlsx" # test data
 TEXT_COL = "SUMMARY" 
 LABEL_COL = "MANCOLL"
 VAL_SIZE = 0.1 # validation size, used on 2021        
@@ -216,7 +216,14 @@ def eval_and_print(name, dataset): # input: name, a label like "Test" or "Valida
     if dataset is None:
         return
 # Reload the model from the saved checkpoint, a checkpoint is a snapshot of the model at a specific training step
-    checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
+    #checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
+    base_dir = os.path.abspath("US Analysis/results/mancoll_bert2")
+    checkpoints = [d for d in os.listdir(base_dir) if d.startswith("checkpoint-")]
+    latest_checkpoint = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))[-1]
+    checkpoint_dir = os.path.join(base_dir, latest_checkpoint)
+
+    print("Loading checkpoint:", checkpoint_dir)
+    
     # load a saved fine-tuned model
     print(os.path.exists(checkpoint_dir))
     print(os.listdir(os.path.dirname(checkpoint_dir)))
