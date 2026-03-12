@@ -1,17 +1,13 @@
 import os
-import json
 import random
 import numpy as np
 import pandas as pd
-from dataclasses import dataclass
-from typing import Dict, List, Optional, Union
+from typing import List
 import time
 import torch
 from torch.utils.data import Dataset
 from torch.nn import CrossEntropyLoss
-
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 from transformers import (
@@ -26,12 +22,9 @@ SEED = 42
 MODEL_NAME = "bert-base-uncased" # choose pre-trained model, this is a bert model, trained on 110 million parameters (weights and biases), lowercased text
 MAX_LENGTH = 256 # maximum number of tokens the model will process for each text input
 OUTPUT_DIR = "Our Analysis/results/mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
-#EXCEL_PATH = "data/case_info_2021.xlsx" # training data
-#test_path= "US Analysis/data/case_info_2020.xlsx" # test data
 TEXT_COL = "SUMMARY" 
 LABEL_COL = "MANCOLL"
-VAL_SIZE = 0.1 # validation size, used on 2021        
-TEST_SIZE = 0.1 # test size on 2021 (not used?)              
+VAL_SIZE = 0.1 # validation size, used on 2021                     
 
 # function to set all seeds, random, numpy, torch and torch.cuda
 def set_seed(seed=SEED):
@@ -42,15 +35,7 @@ def set_seed(seed=SEED):
 
 set_seed()
 
-# load data
-#df = pd.read_excel(EXCEL_PATH)
-#df_test_extra = pd.read_excel(test_path)
-
-# choose only text and labels, drop rows with missing values and reset index
-#df = df[[TEXT_COL, LABEL_COL]].dropna().reset_index(drop=True) 
-#df_test_extra = df_test_extra[[TEXT_COL, LABEL_COL]].dropna().reset_index(drop=True)
-
-# ======== Load Danish Data ========
+# ======== Load Our Data ========
 
 DATA_PATH = "data/data udtræk/raw_2016-2026_v1.xlsx"
 
@@ -164,8 +149,7 @@ class TextClsDataset(Dataset):
 # use the class to convert train, test and validation sets, its here where they mute 2021 test set and use 2020 as test instead
 train_ds = TextClsDataset(df_train, TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
 val_ds   = TextClsDataset(df_val,   TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
-# test_ds  = TextClsDataset(df_test,  TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH) if df_test is not None else None
-test_ds  = TextClsDataset(df_test_extra,  TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH) if df_test is not None else None
+test_ds = TextClsDataset(df_test_extra, TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
 
 # ======== Dealing with class imbalance (class weights) ========
 class_counts = df_train[LABEL_COL].value_counts().sort_index().values # count number of samples in each class
@@ -257,95 +241,24 @@ tokenizer.save_pretrained(OUTPUT_DIR)
 
 from transformers import AutoModelForSequenceClassification
 
-def eval_and_print(name, dataset): # input: name, a label like "Test" or "Validation" and dataset, the dataset we want to evaluate on
+def eval_and_print(name, dataset):
     if dataset is None:
         return
-# Reload the model from the saved checkpoint, a checkpoint is a snapshot of the model at a specific training step
-    #checkpoint_dir =os.path.abspath("US Analysis/results/mancoll_bert2/checkpoint-845") # loads a saved trained model from defined folder, to evaluate the saved best model
-    base_dir = os.path.abspath("Our Analysis/results/mancoll_bert2")
-    checkpoints = [d for d in os.listdir(base_dir) if d.startswith("checkpoint-")]
-    latest_checkpoint = sorted(checkpoints, key=lambda x: int(x.split("-")[1]))[-1]
-    checkpoint_dir = os.path.join(base_dir, latest_checkpoint)
 
-    print("Loading checkpoint:", checkpoint_dir)
-    
-    # load a saved fine-tuned model
-    print(os.path.exists(checkpoint_dir))
-    print(os.listdir(os.path.dirname(checkpoint_dir)))
-    model = AutoModelForSequenceClassification.from_pretrained(
-        checkpoint_dir, 
-        num_labels=num_labels, 
-        id2label=id2label,
-        label2id=label2id,
-    )
+    print(f"\n== {name} ==")
 
-    # create an object based on the Trainer class that runs forward passes and gets predictions. We use Trainer instead of Weighted trainer as we dont calculate loss in prediction
-    tmp_trainer = Trainer(
-        model=model, # load the model from above
-        tokenizer=tokenizer,
-        data_collator=default_data_collator,
-    )
-    time_start = time.time() # store current time to calulate running time
-    preds = tmp_trainer.predict(dataset) # runs the model on the input dataset and gives predictions, preds contains predictions (logits), true labes and evaluation results/metrics
-    y_true = preds.label_ids # extract true labels from prediction output
-    y_pred = np.argmax(preds.predictions, axis=1) # extract predictions, logits which are raw scores from the model for each class, the logit with the highest score is chosen, and that index represents the predicted class. Ex. logits for one sample if we have three classes: [2.1, 0.3, -1.2], then index 0 is highest, and we predict class 0
-    records = [] # create an empty list, can be moved further down
+    time_start = time.time()
+    preds = trainer.predict(dataset)
+    y_true = preds.label_ids
+    y_pred = np.argmax(preds.predictions, axis=1)
 
-    # print accuracy and macro F1 score
-    print(f"\n== {name} ==") 
-    print(f"Accuracy (all): {accuracy_score(y_true, y_pred):.4f}")
-    print(f"F1-macro (all): {f1_score(y_true, y_pred, average='macro'):.4f}")
+    print(f"Accuracy: {accuracy_score(y_true, y_pred):.4f}")
+    print(f"F1-macro: {f1_score(y_true, y_pred, average='macro'):.4f}")
 
-    # dictionary that translates numbers into class names
-    id2label2 = {
-        0: "Eneuheld",
-        1: "1",
-        2: "2",
-        3: "3",
-        4: "4",
-        5: "5",
-        6: "6",
-        7: "7",
-        8: "8",
-        9: "9"
-    }
+    print(classification_report(y_true, y_pred))
 
-    # prints classification report including precision, recall, F1-score and score for each collision type using the true and predicted labels
-    print(classification_report(
-        y_true,
-        y_pred,
-        target_names=[id2label2[i] for i in range(num_labels)]
-    ))
-
-    # creates a list of dictionaries, one for each sample, containing summary (which is * for now), true label and prediction
-    for i in range(len(y_true)): # THIS LINE SHOULD BE CHANGED TO: for i in range(len(y_true)): to ensure it matches the number of samples we have
-        records.append({
-            'SUMMARY': "*",
-            'MANCOLL': y_true[i],
-            'collision_type': y_pred[i]
-        })
-
-    result_df = pd.DataFrame(records) # converts the list of dictionaries to a dataframe
-    output_path = "Our Analysis/results/mancoll_bert2/bert_test_results-845-4.xlsx" # define where the file should be saved and the name
-    dir_path = os.path.dirname(output_path) # extracts the folder name from the full path
-    if dir_path and not os.path.exists(dir_path): # If the folder does not exist, then create it
-        os.makedirs(dir_path)
-
-    result_df.to_excel(output_path, index=False) # saves the DataFrame as an Excel file in output_path
-    # 去掉 Unknown
-    # removes all samples where the true label is class 6, “Unknown”, to evaluate the model without that class
-    mask = y_true != 6
-    y_true_filtered = y_true[mask]
-    y_pred_filtered = y_pred[mask]
-
-    time_end = time.time() # store current time to calculate running time 
-
-    # print accuracy, f1 macro and running time without class 6
-    print(f"\n-- Excluding 'Unknown' class --")
-    print(f"Accuracy (no Unknown): {accuracy_score(y_true_filtered, y_pred_filtered):.4f}")
-    print(f"F1-macro (no Unknown): {f1_score(y_true_filtered, y_pred_filtered, average='macro'):.4f}")
-    print("***")
-    print(time_end - time_start)
+    time_end = time.time()
+    print("Runtime (seconds):", time_end - time_start)
 
 # eval_and_print("Validation", val_ds)
 eval_and_print("Test", test_ds) # evaluate the trained model on the test dataset and print the results
