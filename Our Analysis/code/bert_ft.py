@@ -23,8 +23,7 @@ MODEL_NAME = "bert-base-uncased" # choose pre-trained model, this is a bert mode
 MAX_LENGTH = 256 # maximum number of tokens the model will process for each text input
 OUTPUT_DIR = "Our Analysis/results/mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
 TEXT_COL = "SUMMARY" 
-LABEL_COL = "MANCOLL"
-VAL_SIZE = 0.1 # validation size                     
+LABEL_COL = "MANCOLL"                 
 
 # function to set all seeds, random, numpy, torch and torch.cuda
 def set_seed(seed=SEED):
@@ -92,6 +91,13 @@ df = df[df["n_words"] >= 3].copy()
 print("After cleaning:", df.shape)
 print("Samples per year:")
 print(df["year"].value_counts().sort_index())
+
+# ======== DEBUG: Run on small subset ========
+DEBUG_SAMPLE_SIZE = 3000  # change to None to run full dataset
+
+if DEBUG_SAMPLE_SIZE is not None:
+    df = df.sample(n=DEBUG_SAMPLE_SIZE, random_state=SEED)
+    print("Using debug subset:", df.shape)
 
 # ======== Label Encoding ========
 
