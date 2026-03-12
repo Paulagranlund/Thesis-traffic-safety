@@ -24,7 +24,7 @@ MAX_LENGTH = 256 # maximum number of tokens the model will process for each text
 OUTPUT_DIR = "Our Analysis/results/mancoll_bert2" # where to store the output; model weights, tokenizer, checkpoints, logs...
 TEXT_COL = "SUMMARY" 
 LABEL_COL = "MANCOLL"
-VAL_SIZE = 0.1 # validation size, used on 2021                     
+VAL_SIZE = 0.1 # validation size                     
 
 # function to set all seeds, random, numpy, torch and torch.cuda
 def set_seed(seed=SEED):
@@ -35,9 +35,9 @@ def set_seed(seed=SEED):
 
 set_seed()
 
-# ======== Load Our Data ========
+# ======== Load and Combine All Data Files ========
 
-DATA_PATH = "data/data udtræk/raw_2016-2026_v1.xlsx"
+DATA_FOLDER = "data/data udtræk"
 
 COLUMN_RENAME_MAP = {
     "UHELDSDATO": "accident_date",
@@ -48,16 +48,29 @@ COLUMN_RENAME_MAP = {
     "AAR": "year",
 }
 
-print("Loading Excel file...")
-df = pd.read_excel(DATA_PATH, header=2)
+print("Loading all Excel files...")
 
-print("Original shape:", df.shape)
+all_dfs = []
 
-# Rename columns
-df = df.rename(columns=COLUMN_RENAME_MAP)
+for file in sorted(os.listdir(DATA_FOLDER)):
+    if file.endswith(".xlsx"):
+        path = os.path.join(DATA_FOLDER, file)
+        print("Loading:", file)
 
-# Keep only relevant columns
-df = df[list(COLUMN_RENAME_MAP.values())]
+        df_temp = pd.read_excel(path, header=2)
+
+        # Rename columns
+        df_temp = df_temp.rename(columns=COLUMN_RENAME_MAP)
+
+        # Keep relevant columns
+        df_temp = df_temp[list(COLUMN_RENAME_MAP.values())]
+
+        all_dfs.append(df_temp)
+
+# Combine all years
+df = pd.concat(all_dfs, ignore_index=True)
+
+print("Combined dataset shape:", df.shape)
 
 # Convert encoded accident situation to numeric
 df["encoded_accident_situation"] = pd.to_numeric(
@@ -80,39 +93,51 @@ print("After cleaning:", df.shape)
 print("Samples per year:")
 print(df["year"].value_counts().sort_index())
 
-# ======== Train/Test split by year ========
-
-df_trainval = df[df["year"] == 2021].copy()
-df_test_extra = df[df["year"] == 2020].copy()
-
-print("Train/Val size (2021):", len(df_trainval))
-print("Test size (2020):", len(df_test_extra))
+# ======== Label Encoding ========
 
 TEXT_COL = "police_narrative"
 LABEL_COL = "main_situation_class"
 
-# ======== Label Encoding ========
-
-unique_labels = sorted(int(x) for x in df_trainval[LABEL_COL].unique())
+unique_labels = sorted(int(x) for x in df[LABEL_COL].unique())
 
 label2id = {orig: i for i, orig in enumerate(unique_labels)}
 id2label = {i: orig for orig, i in label2id.items()}
 num_labels = len(unique_labels)
 
-df_trainval[LABEL_COL] = df_trainval[LABEL_COL].map(label2id)
-df_test_extra[LABEL_COL] = df_test_extra[LABEL_COL].map(label2id)
+# Apply encoding to entire dataset
+df[LABEL_COL] = df[LABEL_COL].map(label2id).astype(int)
 
-# Remove rows in test set with unseen labels
-df_test_extra = df_test_extra.dropna(subset=[LABEL_COL])
+print("Label mapping:", label2id)
 
-df_trainval[LABEL_COL] = df_trainval[LABEL_COL].astype(int)
-df_test_extra[LABEL_COL] = df_test_extra[LABEL_COL].astype(int)
+# ======== Stratified Train/Test Split ========
 
-
-# create training and validation sets from 2021
-df_train, df_val = train_test_split(
-    df_trainval, test_size=VAL_SIZE, random_state=SEED, stratify=df_trainval[LABEL_COL]
+df_trainval, df_test = train_test_split(
+    df,
+    test_size=0.2,
+    random_state=SEED,
+    stratify=df[LABEL_COL]
 )
+
+df_train, df_val = train_test_split(
+    df_trainval,
+    test_size=0.1,
+    random_state=SEED,
+    stratify=df_trainval[LABEL_COL]
+)
+
+print("Training samples:", len(df_train))
+print("Validation samples:", len(df_val))
+print("Test samples:", len(df_test))
+
+# check distribution
+print("\nClass distribution (train):")
+print(df_train[LABEL_COL].value_counts(normalize=True).sort_index())
+
+print("\nClass distribution (validation):")
+print(df_val[LABEL_COL].value_counts(normalize=True).sort_index())
+
+print("\nClass distribution (test):")
+print(df_test[LABEL_COL].value_counts(normalize=True).sort_index())
 
 # ======== Tokenizer and Dataset ========
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, use_fast=True) # loads bert's tokenizer
@@ -149,7 +174,7 @@ class TextClsDataset(Dataset):
 # use the class to convert train, test and validation sets, its here where they mute 2021 test set and use 2020 as test instead
 train_ds = TextClsDataset(df_train, TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
 val_ds   = TextClsDataset(df_val,   TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
-test_ds = TextClsDataset(df_test_extra, TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
+test_ds = TextClsDataset(df_test, TEXT_COL, LABEL_COL, tokenizer, MAX_LENGTH)
 
 # ======== Dealing with class imbalance (class weights) ========
 class_counts = df_train[LABEL_COL].value_counts().sort_index().values # count number of samples in each class
